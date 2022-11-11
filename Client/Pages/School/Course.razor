@@ -1,0 +1,16 @@
+﻿@page "/Course"
+@inherits SnickersUI
+@attribute [Authorize]
+<h3>Course</h3>
+
+
+<TelerikDropDownList Data="@lstcourse"
+                     @bind-Value="@itmCourse"
+                     TextField="Description"
+                     ValueField="CourseNo"
+                     DefaultText="Select Course"
+                     Width="50%">
+    <DropDownListSettings>
+        <DropDownListPopupSettings Height="100px"></DropDownListPopupSettings>
+    </DropDownListSettings>
+</TelerikDropDownList>
