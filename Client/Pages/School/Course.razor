@@ -3,7 +3,7 @@
 @attribute [Authorize]
 <h3>Course</h3>
 
-
+@*
 <TelerikDropDownList Data="@lstcourse"
                      @bind-Value="@itmCourse"
                      TextField="Description"
@@ -11,6 +11,52 @@
                      DefaultText="Select Course"
                      Width="50%">
     <DropDownListSettings>
-        <DropDownListPopupSettings Height="100px"></DropDownListPopupSettings>
+        <DropDownListPopupSettings Height="300px"></DropDownListPopupSettings>
     </DropDownListSettings>
-</TelerikDropDownList>
+</TelerikDropDownList>*@
+
+<TelerikGrid @ref="@Grid"
+             TItem="CourseDTO"
+             SortMode="@SortMode.Multiple"
+             Height="760px"
+             Pageable="true"
+             Sortable="true"
+             Groupable="false"
+             @bind-PageSize="@PageSize"
+             PageChanged="@PageChangedHandler"
+             Page="@PageIndex"
+             FilterMode="@GridFilterMode.FilterMenu"
+             Resizable="true"
+             Reorderable="true"
+             OnDelete="@DeleteCourse"
+             OnRead=@ReadItems
+             ShowColumnMenu="true"
+             ConfirmDelete="true">
+
+    <GridSettings>
+        <GridColumnMenuSettings Lockable="false">
+        </GridColumnMenuSettings>
+        <GridPagerSettings InputType="PagerInputType.Buttons" PageSizes="@PageSizes" />
+    </GridSettings>
+
+    <GridToolBar>
+        <GridCommandButton Command="NewUser" OnClick="@NewCourse" Icon="add">Add Course</GridCommandButton>
+        <GridCommandButton Command="ExcelExport" Icon="file-excel">Export to Excel</GridCommandButton>
+        <label class="k-checkbox-label"><TelerikCheckBox @bind-Value="@ExportAllPages" /> Export All Pages</label>
+        <span class="k-toolbar-spacer"></span> @* add this spacer to keep the searchbox on the right *@
+        <GridSearchBox DebounceDelay="200"></GridSearchBox>
+    </GridToolBar>
+
+    <GridExport>
+        <GridExcelExport FileName="telerik-grid-export" AllPages="@ExportAllPages" />
+    </GridExport>
+
+    <GridColumns>
+        <GridColumn Field="@(nameof(CourseDTO.CourseNo))" VisibleInColumnChooser="false" ShowColumnMenu="false" Locked="true" Editable="false" Visible="false" />
+        <GridColumn Field="@(nameof(CourseDTO.SchoolName))" Title="School Name" VisibleInColumnChooser="true" ShowColumnMenu="true" Editable="true" Visible="true" Width="5%" />
+
+        <GridColumn Field="@(nameof(CourseDTO.Description))" VisibleInColumnChooser="true" ShowColumnMenu="true" Editable="true" Visible="true" Width="25%" />
+        <GridColumn Field="@(nameof(CourseDTO.Cost))" DisplayFormat="{0:C2}" TextAlign="@ColumnTextAlign.Right" VisibleInColumnChooser="true" ShowColumnMenu="true" Editable="true" Visible="true" Width="10%"  />
+    </GridColumns>
+
+</TelerikGrid>

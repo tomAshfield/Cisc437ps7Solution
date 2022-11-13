@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SNICKERS.EF.Models;
 
 namespace SNICKERS.Shared.DTO
 {
@@ -23,5 +24,7 @@ namespace SNICKERS.Shared.DTO
         public DateTime ModifiedDate { get; set; }
         public int SchoolId { get; set; }
         public int? PrerequisiteSchoolId { get; set; }
+
+        public string SchoolName { get; set; }
     }
 }

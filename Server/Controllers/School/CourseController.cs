@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿    using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
+using Telerik.DataSource;
+using Telerik.DataSource.Extensions;
 
 namespace SNICKERS.Server.Controllers.School
 {
@@ -35,7 +36,7 @@ namespace SNICKERS.Server.Controllers.School
         [Route("GetCourses")]
         public async Task<IActionResult> GetCourses()
         {
-            List<CourseDTO> lstCourses = await _context.Courses.OrderBy(x => x.CourseNo)
+            List<CourseDTO> lstCourses = await _context.Courses.OrderBy(x => x.Description)
                .Select(sp => new CourseDTO
                {
                    Cost = sp.Cost,
@@ -58,7 +59,7 @@ namespace SNICKERS.Server.Controllers.School
         public async Task<IActionResult> GetCourses(int pCourseNo)
         {
             CourseDTO itmCourse = await _context.Courses
-                .Where(x=>x.CourseNo == pCourseNo)
+                .Where(x => x.CourseNo == pCourseNo)
                 .OrderBy(x => x.CourseNo)
                .Select(sp => new CourseDTO
                {
@@ -80,7 +81,7 @@ namespace SNICKERS.Server.Controllers.School
         [HttpPost]
         public async Task<IActionResult> PostCourse(CourseDTO _CourseDTO)
         {
-            var trans = await  _context.Database.BeginTransactionAsync();
+            var trans = await _context.Database.BeginTransactionAsync();
             Course c = new Course
             {
                 Cost = _CourseDTO.Cost,
@@ -91,7 +92,7 @@ namespace SNICKERS.Server.Controllers.School
             };
             _context.Courses.Add(c);
             await _context.SaveChangesAsync();
-            await  _context.Database.CommitTransactionAsync();
+            await _context.Database.CommitTransactionAsync();
             return Ok();
         }
 
@@ -126,11 +127,71 @@ namespace SNICKERS.Server.Controllers.School
             var trans = await _context.Database.BeginTransactionAsync();
             Course c = await _context.Courses.Where(x => x.CourseNo.Equals(pCourseNo)).FirstOrDefaultAsync();
             _context.Courses.Remove(c);
-             
+
             await _context.SaveChangesAsync();
             await _context.Database.CommitTransactionAsync();
 
             return Ok();
         }
+
+        [HttpPost]
+        [Route("GetCourses")]
+        public async Task<DataEnvelope<CourseDTO>> GetCoursesPost([FromBody] DataSourceRequest gridRequest)
+        {
+            DataEnvelope<CourseDTO> dataToReturn = null;
+            IQueryable<CourseDTO> queriableStates = _context.Courses
+                    .Select(sp => new CourseDTO
+                    {
+                        Cost = sp.Cost,
+                        CourseNo = sp.CourseNo,
+                        CreatedBy = sp.CreatedBy,
+                        CreatedDate = sp.CreatedDate,
+                        Description = sp.Description,
+                        ModifiedBy = sp.ModifiedBy,
+                        ModifiedDate = sp.ModifiedDate,
+                        Prerequisite = sp.Prerequisite,
+                        PrerequisiteSchoolId = sp.PrerequisiteSchoolId,
+                        SchoolId = sp.SchoolId,
+                        SchoolName = sp.School.SchoolName
+                    }) ;
+
+            // use the Telerik DataSource Extensions to perform the query on the data
+            // the Telerik extension methods can also work on "regular" collections like List<T> and IQueriable<T>
+            try
+            {
+
+                DataSourceResult processedData = await queriableStates.ToDataSourceResultAsync(gridRequest);
+
+                if (gridRequest.Groups.Count > 0)
+                {
+                    // If there is grouping, use the field for grouped data
+                    // The app must be able to serialize and deserialize it
+                    // Example helper methods for this are available in this project
+                    // See the GroupDataHelper.DeserializeGroups and JsonExtensions.Deserialize methods
+                    dataToReturn = new DataEnvelope<CourseDTO>
+                    {
+                        GroupedData = processedData.Data.Cast<AggregateFunctionsGroup>().ToList(),
+                        TotalItemCount = processedData.Total
+                    };
+                }
+                else
+                {
+                    // When there is no grouping, the simplistic approach of 
+                    // just serializing and deserializing the flat data is enough
+                    dataToReturn = new DataEnvelope<CourseDTO>
+                    {
+                        CurrentPageData = processedData.Data.Cast<CourseDTO>().ToList(),
+                        TotalItemCount = processedData.Total
+                    };
+                }
+            }
+            catch (Exception e)
+            {
+                //fixme add decent exception handling
+            }
+            return dataToReturn;
+        }
+
     }
 }
+
