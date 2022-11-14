@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using SNICKERS.EF;
 using SNICKERS.Server.Data;
 using SNICKERS.Server.Models;
+using SNICKERS.EF.Data;
+using SNICKERS.Shared.Utils;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDbContext<SNICKERSOracleContext>(options =>
     options.UseOracle(connectionString));
+
+var optionsBuilder = new DbContextOptionsBuilder<SNICKERSOracleContext>();
+optionsBuilder.UseOracle(connectionString);
+
+
+builder.Services.AddSingleton(new OraTransMsgs((optionsBuilder.Options)));
 
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

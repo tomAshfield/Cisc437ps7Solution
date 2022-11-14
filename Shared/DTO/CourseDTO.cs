@@ -14,8 +14,13 @@ namespace SNICKERS.Shared.DTO
         public int CourseNo { get; set; }
         [StringLength(50)]
         public string Description { get; set; } = null!;
+
+        [Range(0, Double.PositiveInfinity, ErrorMessage = "Cost must be >= 0")]
+
         public decimal? Cost { get; set; }
         public int? Prerequisite { get; set; }
+
+        public string PrerequisiteCourseName { get; set; }
         [StringLength(30)]
         public string CreatedBy { get; set; } = null!;
         public DateTime CreatedDate { get; set; }

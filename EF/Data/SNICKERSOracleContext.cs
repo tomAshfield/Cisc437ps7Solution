@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SNICKERS.EF.Models;
 
-namespace SNICKERS.EF
+namespace SNICKERS.EF.Data
 {
     public partial class SNICKERSOracleContext : DbContext
     {
@@ -32,6 +32,7 @@ namespace SNICKERS.EF
         public virtual DbSet<GradeTypeWeight> GradeTypeWeights { get; set; } = null!;
         public virtual DbSet<Instructor> Instructors { get; set; } = null!;
         public virtual DbSet<Key> Keys { get; set; } = null!;
+        public virtual DbSet<OraTranslateMsg> OraTranslateMsgs { get; set; } = null!;
         public virtual DbSet<PersistedGrant> PersistedGrants { get; set; } = null!;
         public virtual DbSet<School> Schools { get; set; } = null!;
         public virtual DbSet<Section> Sections { get; set; } = null!;
@@ -270,6 +271,11 @@ namespace SNICKERS.EF
                     .HasForeignKey(d => d.Zip)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("INSTRUCTOR_FK2");
+            });
+
+            modelBuilder.Entity<OraTranslateMsg>(entity =>
+            {
+                entity.Property(e => e.OraTranslateMsgId).HasDefaultValueSql("sys_guid()");
             });
 
             modelBuilder.Entity<School>(entity =>
