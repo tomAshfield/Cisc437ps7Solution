@@ -22,17 +22,17 @@ namespace SNICKERS.EF.Models
         [StringLength(200)]
         [Unicode(false)]
         public string OraErrorMessage { get; set; } = null!;
-        [Column("ORA_TRANSLATE_MSG_CRTD_ID")]
+        [Column("CREATED_BY")]
         [StringLength(38)]
         [Unicode(false)]
-        public string OraTranslateMsgCrtdId { get; set; } = null!;
-        [Column("ORA_TRANSLATE_MSG_CRTD_DT", TypeName = "DATE")]
-        public DateTime OraTranslateMsgCrtdDt { get; set; }
-        [Column("ORA_TRANSLATE_MSG_UPDT_ID")]
+        public string CreatedBy { get; set; } = null!;
+        [Column("CREATED_DATE", TypeName = "DATE")]
+        public DateTime CreatedDate { get; set; }
+        [Column("MODIFIED_BY")]
         [StringLength(38)]
         [Unicode(false)]
-        public string OraTranslateMsgUpdtId { get; set; } = null!;
-        [Column("ORA_TRANSLATE_MSG_UPDT_DT", TypeName = "DATE")]
-        public DateTime OraTranslateMsgUpdtDt { get; set; }
+        public string ModifiedBy { get; set; } = null!;
+        [Column("MODIFIED_DATE", TypeName = "DATE")]
+        public DateTime ModifiedDate { get; set; }
     }
 }
