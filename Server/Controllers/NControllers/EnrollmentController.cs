@@ -19,18 +19,19 @@ using SNICKERS.EF.Data;
 using SNICKERS.Shared.Utils;
 using SNICKERS.Shared.Errors;
 using System.Text.Json;
+using static System.Collections.Specialized.BitVector32;
 
-namespace SNICKERS.Server.Controllers.School
+namespace SNICKERS.Server.Controllers.NControllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CourseController : Controller
+    public class EnrollmentController : Controller
     {
         protected readonly SNICKERSOracleContext _context;
         protected readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly OraTransMsgs _OraTranslateMsgs;
 
-        public CourseController(SNICKERSOracleContext context,
+        public EnrollmentController(SNICKERSOracleContext context,
             IHttpContextAccessor httpContextAccessor,
              OraTransMsgs OraTranslateMsgs)
         {
@@ -40,28 +41,24 @@ namespace SNICKERS.Server.Controllers.School
         }
 
         [HttpGet]
-        [Route("GetCourses")]
-        public async Task<IActionResult> GetCourses()
+        [Route("GetEnrollments")]
+        public async Task<IActionResult> GetEnrollments()
         {
             try
             {
-                List<CourseDTO> lstCourses = await _context.Courses.OrderBy(x => x.Description)
-                   .Select(sp => new CourseDTO
+                List<EnrollmentDTO> lstEnrollments = await _context.Enrollments.OrderBy(x => x.StudentId)
+                   .Select(sp => new EnrollmentDTO
                    {
-                       Cost = sp.Cost,
-                       CourseNo = sp.CourseNo,
+                       StudentId = sp.StudentId,
+                       SectionId = sp.SectionId,
                        CreatedBy = sp.CreatedBy,
                        CreatedDate = sp.CreatedDate,
-                       Description = sp.Description,
+                       EnrollDate = sp.EnrollDate,
                        ModifiedBy = sp.ModifiedBy,
-                       ModifiedDate = sp.ModifiedDate,
-                       Prerequisite = sp.Prerequisite,
-                       PrerequisiteSchoolId = sp.PrerequisiteSchoolId,
-                       SchoolId = sp.SchoolId,
-                       PrerequisiteCourseName = sp.PrerequisiteNavigation.Description
+                       ModifiedDate = sp.ModifiedDate
                    }).ToListAsync();
 
-                return Ok(lstCourses);
+                return Ok(lstEnrollments);
             }
             catch (DbUpdateException Dex)
             {
@@ -79,30 +76,27 @@ namespace SNICKERS.Server.Controllers.School
         }
 
         [HttpGet]
-        [Route("GetCourses/{pCourseNo}")]
-        public async Task<IActionResult> GetCourses(int pCourseNo)
+        [Route("GetEnrollments/{pEnrollmentNo}")]
+        public async Task<IActionResult> GetEnrollments(int pEnrollmentNo)
         {
             try
             {
 
-                CourseDTO itmCourse = await _context.Courses
-                    .Where(x => x.CourseNo == pCourseNo)
-                    .OrderBy(x => x.CourseNo)
-                   .Select(sp => new CourseDTO
+                EnrollmentDTO itmEnrollment = await _context.Enrollments
+                    .Where(x => x.StudentId == pEnrollmentNo)
+                    .OrderBy(x => x.StudentId)
+                   .Select(sp => new EnrollmentDTO
                    {
-                       Cost = sp.Cost,
-                       CourseNo = sp.CourseNo,
+                       StudentId = sp.StudentId,
+                       SectionId = sp.SectionId,
                        CreatedBy = sp.CreatedBy,
                        CreatedDate = sp.CreatedDate,
-                       Description = sp.Description,
+                       EnrollDate = sp.EnrollDate,
                        ModifiedBy = sp.ModifiedBy,
-                       ModifiedDate = sp.ModifiedDate,
-                       Prerequisite = sp.Prerequisite,
-                       PrerequisiteSchoolId = sp.PrerequisiteSchoolId,
-                       SchoolId = sp.SchoolId
+                       ModifiedDate = sp.ModifiedDate
                    }).FirstOrDefaultAsync();
 
-                return Ok(itmCourse);
+                return Ok(itmEnrollment);
             }
             catch (DbUpdateException Dex)
             {
@@ -121,14 +115,14 @@ namespace SNICKERS.Server.Controllers.School
 
 
         [HttpPost]
-        [Route("PostCourse")]
-        public async Task<IActionResult> PostCourse([FromBody]  string _CourseDTO_String)
+        [Route("PostEnrollment")]
+        public async Task<IActionResult> PostEnrollment([FromBody]  string _EnrollmentDTO_String)
         {
 
             try
             { 
-            CourseDTO _CourseDTO =  JsonSerializer.Deserialize<CourseDTO>(_CourseDTO_String);
-            await this.PostCourse(_CourseDTO);
+            EnrollmentDTO _EnrollmentDTO =  JsonSerializer.Deserialize<EnrollmentDTO>(_EnrollmentDTO_String);
+            await this.PostEnrollment(_EnrollmentDTO);
             }
             catch (Exception)
             {
@@ -142,20 +136,18 @@ namespace SNICKERS.Server.Controllers.School
 
 
         [HttpPost]
-        public async Task<IActionResult> PostCourse([FromBody] CourseDTO _CourseDTO)
+        public async Task<IActionResult> PostEnrollment([FromBody] EnrollmentDTO _EnrollmentDTO)
         {
             try
             {
                 var trans = await _context.Database.BeginTransactionAsync();
-                Course c = new Course
+                Enrollment c = new Enrollment
                 {
-                    Cost = _CourseDTO.Cost,
-                    CourseNo = _CourseDTO.CourseNo,
-                    Description = _CourseDTO.Description,
-                    PrerequisiteSchoolId = _CourseDTO.PrerequisiteSchoolId,
-                    SchoolId = _CourseDTO.SchoolId
+                    StudentId = _EnrollmentDTO.StudentId,
+                    SectionId = _EnrollmentDTO.SectionId,
+                    EnrollDate = _EnrollmentDTO.EnrollDate
                 };
-                _context.Courses.Add(c);
+                _context.Enrollments.Add(c);
                 await _context.SaveChangesAsync();
                 await _context.Database.CommitTransactionAsync();
                 return Ok();
@@ -177,23 +169,21 @@ namespace SNICKERS.Server.Controllers.School
         }
 
         [HttpPut]
-        public async Task<IActionResult> PutCourse(CourseDTO _CourseDTO)
+        public async Task<IActionResult> PutEnrollment(EnrollmentDTO _EnrollmentDTO)
         {
 
             try
             {
                 var trans = await _context.Database.BeginTransactionAsync();
-                Course c = await _context.Courses.Where(x => x.CourseNo.Equals(_CourseDTO.CourseNo)).FirstOrDefaultAsync();
+                Enrollment c = await _context.Enrollments.Where(x => x.StudentId.Equals(_EnrollmentDTO.StudentId)).FirstOrDefaultAsync();
 
                 if (c != null)
                 {
-                    c.Cost = _CourseDTO.Cost;
-                    c.Description = _CourseDTO.Description;
-                    c.SchoolId = _CourseDTO.SchoolId;
-                    c.PrerequisiteSchoolId = _CourseDTO.PrerequisiteSchoolId;
-                    c.Prerequisite = _CourseDTO.Prerequisite;
+                    c.StudentId = _EnrollmentDTO.StudentId;
+                    c.SectionId = _EnrollmentDTO.SectionId;
+                    c.EnrollDate = _EnrollmentDTO.EnrollDate;
 
-                    _context.Courses.Update(c);
+                    _context.Enrollments.Update(c);
                     await _context.SaveChangesAsync();
                     await _context.Database.CommitTransactionAsync();
                 }
@@ -220,8 +210,8 @@ namespace SNICKERS.Server.Controllers.School
         }
 
         [HttpDelete]
-        [Route("DeleteCourse/{pCourseNo}")]
-        public async Task<IActionResult> DeleteCourse(int pCourseNo)
+        [Route("DeleteEnrollment/{pEnrollmentNo}")]
+        public async Task<IActionResult> DeleteEnrollment(int pEnrollmentNo)
         {
 
             try
@@ -229,8 +219,8 @@ namespace SNICKERS.Server.Controllers.School
 
 
                 var trans = await _context.Database.BeginTransactionAsync();
-                Course c = await _context.Courses.Where(x => x.CourseNo.Equals(pCourseNo)).FirstOrDefaultAsync();
-                _context.Courses.Remove(c);
+                Enrollment c = await _context.Enrollments.Where(x => x.StudentId.Equals(pEnrollmentNo)).FirstOrDefaultAsync();
+                _context.Enrollments.Remove(c);
 
                 await _context.SaveChangesAsync();
                 await _context.Database.CommitTransactionAsync();
@@ -252,25 +242,20 @@ namespace SNICKERS.Server.Controllers.School
         }
 
         [HttpPost]
-        [Route("GetCourses")]
-        public async Task<DataEnvelope<CourseDTO>> GetCoursesPost([FromBody] DataSourceRequest gridRequest)
+        [Route("GetEnrollments")]
+        public async Task<DataEnvelope<EnrollmentDTO>> GetEnrollmentsPost([FromBody] DataSourceRequest gridRequest)
         {
-            DataEnvelope<CourseDTO> dataToReturn = null;
-            IQueryable<CourseDTO> queriableStates = _context.Courses
-                    .Select(sp => new CourseDTO
+            DataEnvelope<EnrollmentDTO> dataToReturn = null;
+            IQueryable<EnrollmentDTO> queriableStates = _context.Enrollments
+                    .Select(sp => new EnrollmentDTO
                     {
-                        Cost = sp.Cost,
-                        CourseNo = sp.CourseNo,
+                        StudentId = sp.StudentId,
+                        SectionId = sp.SectionId,
                         CreatedBy = sp.CreatedBy,
                         CreatedDate = sp.CreatedDate,
-                        Description = sp.Description,
+                        EnrollDate = sp.EnrollDate,
                         ModifiedBy = sp.ModifiedBy,
-                        ModifiedDate = sp.ModifiedDate,
-                        Prerequisite = sp.Prerequisite,
-                        PrerequisiteSchoolId = sp.PrerequisiteSchoolId,
-                        SchoolId = sp.SchoolId,
-                        SchoolName = sp.School.SchoolName,
-                        PrerequisiteCourseName = sp.PrerequisiteNavigation.Description
+                        ModifiedDate = sp.ModifiedDate
                     });
 
             // use the Telerik DataSource Extensions to perform the query on the data
@@ -286,7 +271,7 @@ namespace SNICKERS.Server.Controllers.School
                     // The app must be able to serialize and deserialize it
                     // Example helper methods for this are available in this project
                     // See the GroupDataHelper.DeserializeGroups and JsonExtensions.Deserialize methods
-                    dataToReturn = new DataEnvelope<CourseDTO>
+                    dataToReturn = new DataEnvelope<EnrollmentDTO>
                     {
                         GroupedData = processedData.Data.Cast<AggregateFunctionsGroup>().ToList(),
                         TotalItemCount = processedData.Total
@@ -296,9 +281,9 @@ namespace SNICKERS.Server.Controllers.School
                 {
                     // When there is no grouping, the simplistic approach of 
                     // just serializing and deserializing the flat data is enough
-                    dataToReturn = new DataEnvelope<CourseDTO>
+                    dataToReturn = new DataEnvelope<EnrollmentDTO>
                     {
-                        CurrentPageData = processedData.Data.Cast<CourseDTO>().ToList(),
+                        CurrentPageData = processedData.Data.Cast<EnrollmentDTO>().ToList(),
                         TotalItemCount = processedData.Total
                     };
                 }
